@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ChessBoard as Board, ChessBoardSpace } from "@/app/data/board";
 import { EGameMode, Game } from "@/app/data/game";
 import { Player } from "@/app/data/player";
+import { EGameSize, GameSizes } from "@/app/data/sizes";
 
 export default function BoardSpace({
   space,
@@ -17,6 +18,7 @@ export default function BoardSpace({
   passant,
   setPassant,
   move,
+  gameSize,
   hasSelected,
 }: {
   space: ChessBoardSpace,
@@ -32,6 +34,7 @@ export default function BoardSpace({
   passant: boolean,
   setPassant: (passant: boolean) => void,
   move: (row: number, col: number) => void,
+  gameSize: string,
   hasSelected: boolean,
 }) {
   const whiteSpaceClasses = isWhiteSpace ? 'bg-white' : 'bg-slate-600';
@@ -39,6 +42,8 @@ export default function BoardSpace({
   const selectedClasses = selected[0] === position[0] && selected[1] === position[1] ? 'border-2 border-yellow-400' : '';
   // const validPiecesClasses = space ? 'border-2 border-green-400' : '';
   const classNames = `${whiteSpaceClasses} ${validMoveClasses} ${selectedClasses}`;
+  const pieceSize = GameSizes.boardPieceSize(gameSize as EGameSize);
+  const spaceSize = GameSizes.boardSpaceSize(gameSize as EGameSize);
 
   const handlePiece = () => {
     if (game.running()) {
@@ -69,10 +74,10 @@ export default function BoardSpace({
   
   return (
     <div
-      className={`h-12 w-12 ${classNames}`}
+      className={`${spaceSize} ${classNames}`}
       onClick={() => handlePiece()}
     >
-      {space && space && <Image src={space.image()} alt={space.name} width={48} height={48} />}
+      {space && space && <Image src={space.image()} alt={space.name} width={pieceSize} height={pieceSize} className='transition-all' />}
     </div>
   );
 }

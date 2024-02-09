@@ -1,17 +1,19 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChessBoard from "../board";
 import Stats from "./stats";
 import { ChessBoard as Board } from "@/app/data/board";
 import { Game as ChessGame } from "@/app/data/game";
 import { Player } from "@/app/data/player";
 import { ChessPiece, EColor, EPiece } from '@/app/data/chess';
+import { GameSizes, EGameSize } from '@/app/data/sizes';
 import PromotionPawn from '../promotion';
 
 export default function Game({player}: {player: string}) {
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [selectedCol, setSelectedCol] = useState<number | null>(null);
   const [promotionPiece, setPromotionPiece] = useState<ChessPiece | null>(null);
+  const [gameSize, setGameSize] = useState<string>(EGameSize.med);
   const newPlayer = new Player(player);
   newPlayer.color = EColor.white;
   const [player1, setPlayer1] = useState<Player>(newPlayer);
@@ -42,8 +44,22 @@ export default function Game({player}: {player: string}) {
       setPromotionPiece(null);
     }
   }
+  useEffect(() => {
+    function recalculateSize() {
+      const currentSize = GameSizes.calculateSize(window.innerWidth);
+      if (currentSize !== gameSize) {
+        setGameSize(currentSize);
+      }
+    }
+    window.addEventListener("resize", recalculateSize);
+    recalculateSize();
+
+    return () => {
+      window.removeEventListener("resize", () => {});
+    }
+  }, [gameSize]);
   return (
-    <div className="flex flex-row items-center justify-center h-screen">
+    <div className="flex flex-row justify-between items-center h-screen w-screen">
       <ChessBoard
         game={game}
         board={board}
@@ -51,10 +67,12 @@ export default function Game({player}: {player: string}) {
         selected={[selectedRow, selectedCol]}
         select={select}
         move={move}
+        gameSize={gameSize}
         hasSelected={hasSelected()}
       />
       <Stats
         game={game}
+        gameSize={gameSize as EGameSize}
         player={player1}
       />
       <PromotionPawn piece={promotionPiece} setPromotion={setPromotion} />

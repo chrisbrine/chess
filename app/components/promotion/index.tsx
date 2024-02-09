@@ -5,7 +5,6 @@ export default function PromotionPawn({ piece, setPromotion }: {
   piece: ChessPiece | null,
   setPromotion: (piece: ChessPiece, type: EPiece) => void,
 }) {
-  // need a pop up to give options to change pawn to queen, rook, bishop, knight
   function TheImage({name, color}: {name: EPiece, color: EColor}) {
     return <Image src={chessImage(name, color)} alt={name} height={72} width={72}/>;
   }

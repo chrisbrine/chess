@@ -1,9 +1,9 @@
 # Chess
 
 A simple chess application. Not completed. Most pieces do have checking in place but still need some additions:
-- Add checkmate support
-- Add stalemate support
-- Show killed figures
+- highlight pieces that can move
+- Add checkmate support (should be able to do this by calculating moveable pieces and if in check)
+- Add stalemate support (should be able to do this by calculating moveable pieces)
 - Add new game / reset support
 - Add online player support, player 1 is host
 - Add computer player support

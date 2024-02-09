@@ -130,7 +130,7 @@ export class Board {
         new QueenPiece(EColor.black, [7, 4], this),
         new BishopPiece(EColor.black, [7, 5], this),
         new KnightPiece(EColor.black, [7, 6], this),
-        new RookPiece(EColor.black, [7, 5], this),
+        new RookPiece(EColor.black, [7, 7], this),
       ],
     ];
   }
