@@ -5,7 +5,9 @@ A simple chess application. Not completed. Most pieces do have checking in place
 - Add checkmate support (should be able to do this by calculating moveable pieces and if in check)
 - Add stalemate support (should be able to do this by calculating moveable pieces)
 - Add new game / reset support
-- Add online player support, player 1 is host
+
+Much later:
+- Add online player support, player 1 is host (this will likely need a server made)
 - Add computer player support
 - Score tracking kept locally on machine for wins/losses
 Otherwise its a starting version for now
