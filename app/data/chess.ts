@@ -216,7 +216,6 @@ export class ChessPiece {
     return false;
   }
   public setPosition(position: chessPiecePosition) {
-    this.moveCount++;
     this.board.board[this.position[0]][this.position[1]] = null;
     this.position = position;
     this.board.board[this.position[0]][this.position[1]] = this;

@@ -1,7 +1,7 @@
 # Chess
 
 A simple chess application. Not completed. Most pieces do have checking in place but still need some additions:
-- Add new game / reset support
+- Castling stopped working. Need to fix.
 
 Much later:
 - Add online player support, player 1 is host (this will likely need a server made)

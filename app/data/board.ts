@@ -180,6 +180,7 @@ export class Board {
           const rook = this.getPiece([end[0], 7]);
           if (rook && rook.name === EPiece.rook && rook.color === piece.color && rook.moveCount === 0) {
             rook.setPosition([end[0], 4]);
+            rook.moveCount++;
           } else {
             return false;
           }
@@ -187,6 +188,7 @@ export class Board {
           const rook = this.getPiece([end[0], 0]);
           if (rook && rook.name === EPiece.rook && rook.color === piece.color && rook.moveCount === 0) {
             rook.setPosition([end[0], 2]);
+            rook.moveCount++;
           } else {
             return false;
           }
@@ -194,6 +196,7 @@ export class Board {
       }
       this.clearAllValidMovesCache();
       piece.setPosition(end);
+      piece.moveCount++;
       return true;
     }
     if (this.inCheckMate()) {
