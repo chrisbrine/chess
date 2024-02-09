@@ -19,6 +19,7 @@ export default function BoardSpace({
   setPassant,
   move,
   gameSize,
+  coordinates,
   hasSelected,
 }: {
   space: ChessBoardSpace,
@@ -35,13 +36,15 @@ export default function BoardSpace({
   setPassant: (passant: boolean) => void,
   move: (row: number, col: number) => void,
   gameSize: string,
+  coordinates: Set<String>,
   hasSelected: boolean,
 }) {
   const whiteSpaceClasses = isWhiteSpace ? 'bg-white' : 'bg-slate-600';
   const validMoveClasses = validMoves.some(([row, col]) => row === position[0] && col === position[1]) ? space || passant ? 'border-2 border-red-400' : 'border-2 border-green-400' : '';
   const selectedClasses = selected[0] === position[0] && selected[1] === position[1] ? 'border-2 border-yellow-400' : '';
-  // const validPiecesClasses = space ? 'border-2 border-green-400' : '';
-  const classNames = `${whiteSpaceClasses} ${validMoveClasses} ${selectedClasses}`;
+  const isValidCoordinate = coordinates.has(`${position[0]},${position[1]}`);
+  const validPiecesClasses = isValidCoordinate && !hasSelected ? 'border-2 border-green-400' : '';
+  const classNames = `${whiteSpaceClasses} ${validMoveClasses} ${selectedClasses} ${validPiecesClasses} transition-all`;
   const pieceSize = GameSizes.boardPieceSize(gameSize as EGameSize);
   const spaceSize = GameSizes.boardSpaceSize(gameSize as EGameSize);
 
@@ -49,11 +52,13 @@ export default function BoardSpace({
     if (game.running()) {
       if (player.color === game.turn || game.mode === EGameMode.twoPlayer) {
         if (hasSelected) {
+          game.board.clearAllValidMovesCache();
           setPassant(false);
           setValidMoves([]);
           move(...position);
         } else {
           if (space && space.color === game.turn) {
+            game.board.clearAllValidMovesCache();
             const validMoves = space.getValidMoves(false);
             if (validMoves.length > 0) {
               select(...position);

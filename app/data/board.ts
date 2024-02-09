@@ -432,7 +432,21 @@ export class Board {
         canMove.push(piece);
       }
     }
+    this.clearAllValidMovesCache();
     return canMove;
+  }
+  public coordinatesCanMove(color: EColor) {
+    const pieces = this.pieces[color];
+    const validPieces: Set<String> = new Set<String>();
+    for (const piece of pieces) {
+      const moves = this.validMoves(piece);
+      if (moves.length > 0) {
+        validPieces.add(`${piece.position[0]},${piece.position[1]}`);
+
+      }
+    }
+    this.clearAllValidMovesCache();
+    return validPieces;
   }
   public getKing(color: EColor) {
     for (const piece of this.pieces[color]) {

@@ -1,9 +1,6 @@
 # Chess
 
 A simple chess application. Not completed. Most pieces do have checking in place but still need some additions:
-- highlight pieces that can move
-- Add checkmate support (should be able to do this by calculating moveable pieces and if in check)
-- Add stalemate support (should be able to do this by calculating moveable pieces)
 - Add new game / reset support
 
 Much later:

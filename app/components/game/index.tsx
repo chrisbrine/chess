@@ -20,6 +20,7 @@ export default function Game({player}: {player: string}) {
   const [player2, setPlayer2] = useState<Player>(new Player('Player 2'));
   const [game, setGame] = useState<ChessGame>(new ChessGame([player1, player2]));
   const [board, setBoard] = useState<Board>(game.board.board);
+  const [coordinates, setCoordinates] = useState<Set<String>>(new Set<String>(game.board.coordinatesCanMove(game.turn)));
   const hasSelected = () => selectedRow !== null && selectedCol !== null;
   const select = (row: number, col: number) => {
     setSelectedRow(row);
@@ -30,6 +31,7 @@ export default function Game({player}: {player: string}) {
       const space = game.board.board[selectedRow][selectedCol];
       if (game.board.move([selectedRow, selectedCol], [row, col])) {
         game.nextTurn();
+        setCoordinates(game.board.coordinatesCanMove(game.turn));
       }
       setSelectedRow(null);
       setSelectedCol(null);
@@ -68,12 +70,14 @@ export default function Game({player}: {player: string}) {
         select={select}
         move={move}
         gameSize={gameSize}
+        coordinates={coordinates}
         hasSelected={hasSelected()}
       />
       <Stats
         game={game}
         gameSize={gameSize as EGameSize}
         player={player1}
+        coordinates={coordinates}
       />
       <PromotionPawn piece={promotionPiece} setPromotion={setPromotion} />
     </div>

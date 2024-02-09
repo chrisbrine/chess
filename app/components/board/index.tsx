@@ -13,6 +13,7 @@ export default function ChessBoard({
   selected,
   move,
   gameSize,
+  coordinates,
   hasSelected,
 }: {
   game: Game,
@@ -22,6 +23,7 @@ export default function ChessBoard({
   selected: [number | null, number | null],
   move: (row: number, col: number) => void,
   gameSize: string,
+  coordinates: Set<String>,
   hasSelected: boolean,
 }) {
   const [validMoves, setValidMoves] = useState<[number, number][]>([]);
@@ -56,6 +58,7 @@ export default function ChessBoard({
                 setPassant={setPassant}
                 move={move}
                 gameSize={gameSize}
+                coordinates={coordinates}
                 hasSelected={hasSelected}
               />
             )}
