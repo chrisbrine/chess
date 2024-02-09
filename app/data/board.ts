@@ -28,6 +28,7 @@ export type ChessBoard = [
 ];
 
 export class Board {
+  private tempSpot: ChessPiece | null = null;
   public board: ChessBoard;
   public isInCheckMate: boolean = false;
   public winnerColor: EColor | null = null;
@@ -123,18 +124,13 @@ export class Board {
       ],
       [
         new RookPiece(EColor.black, [7, 0], this),
-        null,
-        null,
-        // new KnightPiece(EColor.black, [7, 1], this),
-        // new BishopPiece(EColor.black, [7, 2], this),
+        new KnightPiece(EColor.black, [7, 1], this),
+        new BishopPiece(EColor.black, [7, 2], this),
         new KingPiece(EColor.black, [7, 3], this),
-        // new QueenPiece(EColor.black, [7, 4], this),
-        // new BishopPiece(EColor.black, [7, 5], this),
-        // new KnightPiece(EColor.black, [7, 6], this),
-        null,
-        null,
-        null,
-        new RookPiece(EColor.black, [7, 7], this),
+        new QueenPiece(EColor.black, [7, 4], this),
+        new BishopPiece(EColor.black, [7, 5], this),
+        new KnightPiece(EColor.black, [7, 6], this),
+        new RookPiece(EColor.black, [7, 5], this),
       ],
     ];
   }
@@ -149,6 +145,14 @@ export class Board {
       this.pieces[piece.color].splice(index, 1);
     }
   }
+  public clearAllValidMovesCache() {
+    for (const piece of this.pieces[EColor.white]) {
+      piece.clearValidMovesCache();
+    }
+    for (const piece of this.pieces[EColor.black]) {
+      piece.clearValidMovesCache();
+    }
+  }
   public move(start: chessPiecePosition, end: chessPiecePosition): boolean {
     if (!this.game.running()) {
       return false;
@@ -157,18 +161,7 @@ export class Board {
     if (!piece) {
       return false;
     }
-    if (piece.validMove(end)) {
-      // if (this.validPassant(start, end, piece.color)) {
-      //   let otherPiece: ChessPiece | null = null;
-      //   if (start[1] > end[1]) {
-      //     otherPiece = this.getPiece([start[0], start[1] - 1]);
-      //   } else if (start[1] < end[1]) {
-      //     otherPiece = this.getPiece([start[0], start[1] + 1]);
-      //   }
-      //   if (otherPiece) {
-      //     otherPiece.kill();
-      //   }
-      // }
+    if (piece.validMove(end, false)) {
       const endPiece = this.board[end[0]][end[1]];
       if (endPiece) {
         endPiece.kill();
@@ -186,7 +179,6 @@ export class Board {
         if (end[1] === start[1] + 2) {
           const rook = this.getPiece([end[0], 7]);
           if (rook && rook.name === EPiece.rook && rook.color === piece.color && rook.moveCount === 0) {
-            // this.move([end[0], 7], [end[0], 5]);
             rook.setPosition([end[0], 4]);
           } else {
             return false;
@@ -194,16 +186,14 @@ export class Board {
         } else if (end[1] === start[1] - 2) {
           const rook = this.getPiece([end[0], 0]);
           if (rook && rook.name === EPiece.rook && rook.color === piece.color && rook.moveCount === 0) {
-            // this.move([end[0], 0], [end[0], 3]);
             rook.setPosition([end[0], 2]);
           } else {
             return false;
           }
         }
       }
+      this.clearAllValidMovesCache();
       piece.setPosition(end);
-      // this.board[end[0]][end[1]] = piece;
-      // this.board[start[0]][start[1]] = null;
       return true;
     }
     if (this.inCheckMate()) {
@@ -219,17 +209,31 @@ export class Board {
     const endPiece = this.board[end[0]][end[1]];
     this.board[end[0]][end[1]] = piece;
     this.board[start[0]][start[1]] = null;
+    piece.position = end;
+    this.clearAllValidMovesCache();
     const king = this.getKing(piece.color);
     if (!king) {
       return false;
     }
-    const inCheck = this.spaceInCheck(king.position, piece.color);
+    const inCheck = this.spaceInCheck(king, king.position, piece.color);
     this.board[start[0]][start[1]] = piece;
     this.board[end[0]][end[1]] = endPiece;
+    piece.position = start;
     return inCheck;
   }
-  validSpace(piece: ChessPiece, position: chessPiecePosition, color: EColor, stopMove: boolean, canKill: boolean, verifyPassant: boolean = false) {
+  validSpace(
+    piece: ChessPiece,
+    position: chessPiecePosition,
+    color: EColor,
+    stopMove: boolean,
+    canKill: boolean,
+    verifyPassant: boolean = false,
+    overrideKing: boolean = false,
+  ) {
     if (position[0] < 0 || position[0] > 7 || position[1] < 0 || position[1] > 7) {
+      return false;
+    }
+    if (overrideKing && !canKill) {
       return false;
     }
     if (stopMove) {
@@ -250,11 +254,18 @@ export class Board {
         }
       }
     }
-    if (piece.name === EPiece.king) {
+    if (!overrideKing && this.movePutsOwnKingInCheck(piece.position, position)) {
+      console.log('check')
+      return false;
+    }
+    if (!overrideKing && piece.name === EPiece.king) {
       // special 'castle' move for king
       // !!!!!!!!!!!!!!!!!!!!!!!!!
       // NEED TO MAKE SURE THE KING IS NOT IN CHECK
       // !!!!!!!!!!!!!!!!!!!!!!!!!
+      if (this.spaceInCheck(piece, position, color)) {
+        return false;
+      }
       if (position[1] === piece.position[1] + 2) {
         const rook = this.getPiece([position[0], 7]);
         if (rook && rook.name === EPiece.rook && rook.color === piece.color && rook.moveCount === 0) {
@@ -274,14 +285,14 @@ export class Board {
       }
     }
     const otherPiece = this.getPiece(position);
-    if (!otherPiece) {
+    if (!otherPiece || overrideKing) {
       if (verifyPassant && piece.name === EPiece.pawn && piece.position[1] !== position[1]) {
         const otherPosition: chessPiecePosition = [
           piece.position[0] + (piece.color === EColor.black ? -1 : 1),
           piece.position[1]
         ];
         const otherPiece = this.getPiece(otherPosition);
-        if (otherPiece && piece.moveCount === 1 && otherPiece.name === EPiece.pawn && otherPiece.color !== color) {
+        if (overrideKing || otherPiece && piece.moveCount === 1 && otherPiece.name === EPiece.pawn && otherPiece.color !== color) {
           return true;
         } else {
           return false;
@@ -299,48 +310,19 @@ export class Board {
     }
     return this.board[position[0]][position[1]];
   }
-  // public validPassant(position: chessPiecePosition, newPosition: chessPiecePosition, color: EColor) {
-  //   const piece = this.board[position[0]][position[1]];
-  //   if (!piece) {
-  //     return false;
-  //   }
-  //   if (piece.name !== EPiece.pawn) {
-  //     return false;
-  //   }
-  //   if (piece.color !== color) {
-  //     return false;
-  //   }
-
-  //   if ((piece.color === EColor.black && position[0] === 3 && newPosition[0] === 2 && (newPosition[1] === position[1] - 1)) ||
-  //     (piece.color === EColor.white && position[0] === 4 && newPosition[0] === 5 && newPosition[1] === position[1] - 1)) {
-  //     const otherColor = piece.color === EColor.black ? EColor.black : EColor.white;
-  //     let otherPiece: ChessPiece | null = null;
-  //     if (newPosition[1] == position[1] - 1) {
-  //       otherPiece = this.getPiece([position[0], position[1] - 1]);
-  //     } else if (newPosition[1] == position[1] + 1) {
-  //       otherPiece = this.getPiece([position[0], position[1] + 1]);
-  //     } else {
-  //       return false;
-  //     }
-    
-  //     if (otherPiece && otherPiece.name === EPiece.pawn && otherPiece.color === otherColor) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
-  public spaceInCheck(position: chessPiecePosition, color: EColor) {
+  public spaceInCheck(current: ChessPiece, position: chessPiecePosition, color: EColor) {
+    if (!current) {
+      return false;
+    }
     const pieces = this.pieces[color === EColor.white ? EColor.black : EColor.white];
-    // for (const piece of pieces) {
-    //   console.log('checking', piece.name, piece.position);
-    //   if (piece.validMove(position)) {
-    //     return true;
-    //   }
-    // }
-    console.log('done');
+    for (const piece of pieces) {
+      if (piece !== current && piece !== this.tempSpot && piece.validMove(position, true)) {
+        return true;
+      }
+    }
     return false;
   }
-  public replacePawn(piece: ChessPiece, type: EPiece) {
+  public promotePawn(piece: ChessPiece, type: EPiece) {
     const color = piece.color;
     const position = piece.position;
     switch (type) {
@@ -367,13 +349,11 @@ export class Board {
     this.board[position[0]][position[1] as number] = piece;
   }
   public colorInCheck(color: EColor) {
-    const pieces = this.pieces[color];
-    for (const piece of pieces) {
-      if (piece.name === EPiece.king) {
-        return this.spaceInCheck(piece.position, color);
-      }
+    const king = this.getKing(color);
+    if (!king) {
+      return false;
     }
-    return false;
+    return this.spaceInCheck(king, king.position, color);
   }
   public colorInCheckMate(color: EColor) {
     return false;
@@ -386,7 +366,7 @@ export class Board {
     // for (let move of moves) {
     //   const row = move[0] + king.position[0];
     //   const col = move[1] + king.position[1];
-    //   if (king.validMove([row, col])) {
+    //   if (king.validMove([row, col]), false) {
     //     if (!this.spaceInCheck([row, col], color)) {
     //       return false;
     //     }
@@ -442,7 +422,7 @@ export class Board {
     return this.colorInCheckMate(EColor.white) || this.colorInCheckMate(EColor.black);
   }
   public validMoves(piece: ChessPiece) {
-    return piece.getValidMoves();
+    return piece.getValidMoves(false);
   }
   public piecesCanMove(color: EColor) {
     const pieces = this.pieces[color];

@@ -2,10 +2,17 @@ import { Board } from "./board";
 import { ChessPiece, EColor } from "./chess";
 import { Player } from "./player";
 
+export enum EGameMode {
+  twoPlayer = 'twoPlayer',
+  computer = 'computer',
+  online = 'online',
+}
+
 export class Game {
   public white: Player;
   public black: Player;
   public turn: EColor = EColor.white;
+  public mode: EGameMode = EGameMode.twoPlayer;
   public killed: {
     [EColor.white]: ChessPiece[],
     [EColor.black]: ChessPiece[],
@@ -46,6 +53,9 @@ export class Game {
   }
   public start() {
     this.started = true;
+  }
+  public nextTurn() {
+    this.turn = this.turn === EColor.white ? EColor.black : EColor.white;
   }
   public kill(piece: ChessPiece) {
     this.killed[piece.color].push(piece);

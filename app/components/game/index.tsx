@@ -5,11 +5,13 @@ import Stats from "./stats";
 import { ChessBoard as Board } from "@/app/data/board";
 import { Game as ChessGame } from "@/app/data/game";
 import { Player } from "@/app/data/player";
-import { EColor } from '@/app/data/chess';
+import { ChessPiece, EColor, EPiece } from '@/app/data/chess';
+import PromotionPawn from '../promotion';
 
 export default function Game({player}: {player: string}) {
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [selectedCol, setSelectedCol] = useState<number | null>(null);
+  const [promotionPiece, setPromotionPiece] = useState<ChessPiece | null>(null);
   const newPlayer = new Player(player);
   newPlayer.color = EColor.white;
   const [player1, setPlayer1] = useState<Player>(newPlayer);
@@ -23,9 +25,21 @@ export default function Game({player}: {player: string}) {
   }
   const move = (row: number, col: number) => {
     if (selectedRow !== null && selectedCol !== null) {
-      game.board.move([selectedRow, selectedCol], [row, col]);
+      const space = game.board.board[selectedRow][selectedCol];
+      if (game.board.move([selectedRow, selectedCol], [row, col])) {
+        game.nextTurn();
+      }
       setSelectedRow(null);
       setSelectedCol(null);
+      if (space && space.name === EPiece.pawn && (row === 0 || row === 7)) {
+        setPromotionPiece(space);
+      }
+    }
+  }
+  const setPromotion = (piece: ChessPiece, type: EPiece) => {
+    if (promotionPiece) {
+      game.board.promotePawn(promotionPiece, type);
+      setPromotionPiece(null);
     }
   }
   return (
@@ -43,6 +57,7 @@ export default function Game({player}: {player: string}) {
         game={game}
         player={player1}
       />
+      <PromotionPawn piece={promotionPiece} setPromotion={setPromotion} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ChessBoard as Board, ChessBoardSpace } from "@/app/data/board";
-import { Game } from "@/app/data/game";
+import { EGameMode, Game } from "@/app/data/game";
 import { Player } from "@/app/data/player";
 
 export default function BoardSpace({
@@ -42,14 +42,14 @@ export default function BoardSpace({
 
   const handlePiece = () => {
     if (game.running()) {
-      if (player.color === game.turn) {
+      if (player.color === game.turn || game.mode === EGameMode.twoPlayer) {
         if (hasSelected) {
           setPassant(false);
           setValidMoves([]);
           move(...position);
         } else {
-          if (space) {
-            const validMoves = space.getValidMoves();
+          if (space && space.color === game.turn) {
+            const validMoves = space.getValidMoves(false);
             if (validMoves.length > 0) {
               select(...position);
               setValidMoves(validMoves);
@@ -64,6 +64,7 @@ export default function BoardSpace({
         }
       }
     }
+    game.board.clearAllValidMovesCache();
   }
   
   return (

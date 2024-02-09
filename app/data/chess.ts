@@ -98,6 +98,9 @@ class Moves {
 
 export const AllMoves = new Moves();
 
+export const chessImage = (name: EPiece, color: EColor) =>
+  `./assets/${name}-${color}.svg`;
+
 export class ChessPiece {
   private cachedMoves: [number, number][] = [];
   private initialMovesCache: [number, number][] = [];
@@ -151,7 +154,7 @@ export class ChessPiece {
     }
   }
   public image() {
-    return `./assets/${this.name}-${this.color}.svg`;
+    return chessImage(this.name, this.color);
   }
   // public validMove(position: chessPiecePosition) {
   //   return this.board.validSpace(position, this.color, true, false);
@@ -169,39 +172,40 @@ export class ChessPiece {
     moves: [number, number][],
     verifyPassant: boolean = false,
     overrideKillAtSpace: boolean = false,
+    overrideKing: boolean = false,
   ) {
     for (let move of moves) {
       const row = this.position[0] + move[0];
       const col = this.position[1] + move[1];
-      if (this.board.validSpace(this, [row, col], this.color, this.killMove, this.killAtSpace || overrideKillAtSpace, verifyPassant)) {
+      if (this.board.validSpace(this, [row, col], this.color, this.killMove, this.killAtSpace || overrideKillAtSpace, verifyPassant, overrideKing)) {
         validMovesVerify.add(this.stringifyPosition([row, col]));
         validMoves.push([row, col]);
       }
     }
   }
-  public getValidMoves() {
+  public getValidMoves(overrideKing: boolean = false) {
     if (this.cachedValidMoves !== null) {
       return this.cachedValidMoves;
     }
     const validMovesVerify = new Set<string>();
     const validMoves: [number, number][] = [];
     if (this.moveCount === 0 && this.initialMovesCache.length > 0) {
-      this.checkMoves(validMovesVerify, validMoves, this.initialMovesCache, false, false);
+      this.checkMoves(validMovesVerify, validMoves, this.initialMovesCache, false, false, overrideKing);
     } else {
-      this.checkMoves(validMovesVerify, validMoves, this.cachedMoves, false, false);
+      this.checkMoves(validMovesVerify, validMoves, this.cachedMoves, false, false, overrideKing);
     }
     if (this.cachedKillMoves.length > 0) {
-      this.checkMoves(validMovesVerify, validMoves, this.cachedKillMoves, true, true);
+      this.checkMoves(validMovesVerify, validMoves, this.cachedKillMoves, true, true, overrideKing);
     }
-    if (this.name === EPiece.king && this.moveCount === 0) {
-      this.checkMoves(validMovesVerify, validMoves, AllMoves.specialKing(), false, false);
+    if (this.name === EPiece.king && this.moveCount === 0 && this.position[1] === 4 && (this.position[0] === 0 || this.position[0] === 7)) {
+      this.checkMoves(validMovesVerify, validMoves, AllMoves.specialKing(), false, false, overrideKing);
     }
     this.cachedValidMoves = validMoves;
     this.cachedValidMovesVerify = validMovesVerify;
     return validMoves;
   }
-  public validMove(position: chessPiecePosition) {
-    const validMoves = this.getValidMoves();
+  public validMove(position: chessPiecePosition, overrideKing: boolean = false) {
+    const validMoves = this.getValidMoves(overrideKing);
     const validMovesVerify = this.cachedValidMovesVerify;
     if (validMoves === null || validMovesVerify === null) {
       return false;
@@ -217,6 +221,13 @@ export class ChessPiece {
     this.position = position;
     this.board.board[this.position[0]][this.position[1]] = this;
     this.clearValidMovesCache();
+  }
+  public tempSetPosition(position: chessPiecePosition) {
+    const oldPosition = this.position;
+    this.board.board[oldPosition[0]][oldPosition[1]] = null;
+    this.position = position;
+    this.board.board[position[0]][position[1]] = this;
+    return oldPosition;
   }
   public kill() {
     this.board.game.killed[this.color].push(this);
