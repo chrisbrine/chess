@@ -1,3 +1,19 @@
+# Chess
+
+A simple chess application. Not completed. Most pieces do have checking in place but still need some additions:
+- Institute ‘check’ support for if king is in check
+- Block castle-ing for if the king is in check
+- Add ability for pawn to change to another figure when reaching the endzone
+- Add checkmate support
+- Add stalemate support
+- Show killed figures
+- Add new game / reset support
+- Flip between turns support on move
+- Add online player support, player 1 is host
+- Add computer player support
+- Score tracking kept locally on machine for wins/losses
+Otherwise its a starting version for now
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
