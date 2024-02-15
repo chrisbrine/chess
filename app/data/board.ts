@@ -258,7 +258,6 @@ export class Board {
       }
     }
     if (!overrideKing && this.movePutsOwnKingInCheck(piece.position, position)) {
-      console.log('check')
       return false;
     }
     if (!overrideKing && piece.name === EPiece.king) {
